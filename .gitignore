@@ -1,0 +1,61 @@
+# ========================================
+# 📦 Rust General
+# ========================================
+/target/
+/Cargo.lock
+**/*.rs.bk
+
+# ========================================
+# 🧪 Testing and Coverage
+# ========================================
+/*.lcov
+/coverage/
+/*.profraw
+/*.profdata
+
+# ========================================
+# 📦 Dependencies (optional for monorepos)
+/vendor/
+
+# ========================================
+# 💻 IDEs & Editors
+# VSCode
+.vscode/
+/.history/
+*.code-workspace
+
+# IntelliJ / CLion / RustRover
+.idea/
+*.iml
+
+# Sublime
+*.sublime-workspace
+*.sublime-project
+
+# ========================================
+# 🗑️ OS / Misc
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# ========================================
+# 🧰 Tool-specific (optional)
+/docs/
+/node_modules/
+/dist/
+/.env
+.env.*
+*.log
+*.tmp
+*.bak
+
+# ========================================
+# 🚀 GitHub Actions / CI (optional)
+.github/workflows/*.bak
