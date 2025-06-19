@@ -87,10 +87,14 @@ pub struct AccountHandler<'a> {
 }
 
 impl<'a> AccountHandler<'a> {
+    
+    /// Retrieves the current cash balance of the given player.
     pub fn get_balance(&self, player_id: &str) -> Option<u32> {
         self.memory_manager.get_user(player_id).map(|u| u.cash())
     }
 
+    /// Adds a specified amount of money to the player's balance.
+    /// Returns an error if the player does not exist or if the modification fails.
     pub fn deposit(&mut self, player_id: &str, amount: u32) -> Result<(), FinancialManagerError> {
         let user = self
             .memory_manager
@@ -104,6 +108,9 @@ impl<'a> AccountHandler<'a> {
             .map_err(|_| FinancialManagerError::TransactionFailed(player_id.to_string()))
     }
 
+    /// Deducts a specified amount of money from the player's balance.
+    /// Returns an error if the player does not exist, has insufficient funds,
+    /// or if the modification fails.
     pub fn withdraw(&mut self, player_id: &str, amount: u32) -> Result<(), FinancialManagerError> {
         let user = self
             .memory_manager
@@ -124,6 +131,8 @@ impl<'a> AccountHandler<'a> {
             .map_err(|_| FinancialManagerError::TransactionFailed(player_id.to_string()))
     }
 
+    /// Transfers funds between two players.
+    /// Returns an error if either player is not found, or the transfer fails.
     pub fn transfer(
         &mut self,
         from_player: &str,
@@ -137,6 +146,8 @@ impl<'a> AccountHandler<'a> {
         Ok(())
     }
 
+    /// Sets the player's balance to zero and marks them as no longer in jail.
+    /// Returns an error if the user is not found or modification fails.
     pub fn declare_bankruptcy(&mut self, player_id: &str) -> Result<(), FinancialManagerError> {
         self.memory_manager
             .get_user(player_id)
@@ -159,6 +170,8 @@ pub struct PropertyHandler<'a> {
 }
 
 impl<'a> PropertyHandler<'a> {
+    
+    /// Returns the name of the current owner of the given field, if any.
     pub fn get_owner(&self, field_id: u32) -> Option<String> {
         match self.memory_manager.get_field(field_id) {
             Some(FieldType::Property(data)) => data.owner().clone(),
@@ -167,6 +180,8 @@ impl<'a> PropertyHandler<'a> {
         }
     }
 
+    /// Attempts to purchase a property.
+    /// Validates ownership, player funds, and field type.
     pub fn buy_property(
         &mut self,
         player_id: &str,
@@ -218,6 +233,8 @@ impl<'a> PropertyHandler<'a> {
     
     
 
+    /// Sells a property and credits the player with the sell price.
+    /// Returns an error if the player doesn't own the property or if the field type is invalid.
     pub fn sell_property(
         &mut self,
         player_id: &str,
@@ -269,7 +286,8 @@ mod tests {
 
     #[test]
     fn test_account_get_balance() {
-        let mut mm = MemoryManager::new();
+        // Verify basic balance retrieval works.
+    let mut mm = MemoryManager::new();
         mm.insert_user("Alice".into(), UserData::new(500, false));
 
         let mut fm = FinancialManager::new(&mut mm);
@@ -278,6 +296,7 @@ mod tests {
 
     #[test]
     fn test_account_deposit() {
+        // Deposit to user account and check updated balance.
         let mut mm = MemoryManager::new();
         mm.insert_user("Bob".into(), UserData::new(300, false));
 
@@ -288,6 +307,7 @@ mod tests {
 
     #[test]
     fn test_account_withdraw() {
+        // Withdraw funds and verify the balance is updated.
         let mut mm = MemoryManager::new();
         mm.insert_user("Charlie".into(), UserData::new(400, false));
 
@@ -298,6 +318,7 @@ mod tests {
 
     #[test]
     fn test_account_transfer() {
+        // Transfer between users and validate balances.
         let mut mm = MemoryManager::new();
         mm.insert_user("Dave".into(), UserData::new(500, false));
         mm.insert_user("Eve".into(), UserData::new(300, false));
@@ -310,6 +331,7 @@ mod tests {
 
     #[test]
     fn test_buy_property() {
+        // Successful property purchase: check ownership and balance deduction.
         let mut mm = MemoryManager::new();
         mm.insert_user("Alice".into(), UserData::new(500, false));
         mm.insert_field(1, FieldType::Property(PropertyData::new(None, 200, 1)));
@@ -322,6 +344,7 @@ mod tests {
 
     #[test]
     fn test_sell_property() {
+        // Selling property credits the player's balance and clears ownership.
         let mut mm = MemoryManager::new();
         mm.insert_user("Alice".into(), UserData::new(300, false));
         mm.insert_field(
@@ -329,6 +352,7 @@ mod tests {
             FieldType::Property(PropertyData::new(Some("Alice".into()), 200, 1)),
         );
 
+        // Retrieve owner name of already-owned field.
         let mut fm = FinancialManager::new(&mut mm);
         assert_eq!(fm.properties().sell_property("Alice", 1, 150), Ok(()));
         assert_eq!(fm.properties().get_owner(1), None);
@@ -337,6 +361,7 @@ mod tests {
 
     #[test]
     fn test_property_get_owner() {
+        // Retrieve owner name of already-owned field.
         let mut mm = MemoryManager::new();
         mm.insert_field(
             2,
@@ -349,6 +374,7 @@ mod tests {
 
     #[test]
     fn test_buy_property_insufficient_funds() {
+        // Attempt to buy property with too little money should fail with error.
         let mut mm = MemoryManager::new();
         mm.insert_user("Charlie".into(), UserData::new(100, false));
         mm.insert_field(3, FieldType::Property(PropertyData::new(None, 200, 2)));
@@ -366,6 +392,7 @@ mod tests {
 
     #[test]
     fn test_declare_bankruptcy() {
+        // Declaring bankruptcy should reset balance and jail status.
         let mut mm = MemoryManager::new();
         mm.insert_user("Eve".into(), UserData::new(250, true));
 
